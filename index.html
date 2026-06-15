@@ -6,13 +6,11 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="AlAzha">
-<title> </title>
 <title>&#8203;</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body { font-family: 'Segoe UI', sans-serif; background: #f0f4f8; min-height: 100vh; }
 
-/* Login */
 .login-screen {
   min-height: 100vh;
   background: linear-gradient(135deg, #1a3a5c, #0d5c8a);
@@ -45,7 +43,6 @@ body { font-family: 'Segoe UI', sans-serif; background: #f0f4f8; min-height: 100
 }
 .login-error { color: #e53e3e; font-size: 13px; text-align: center; margin-top: 10px; display: none; }
 
-/* Main App */
 .app-screen { display: none; }
 
 .header {
@@ -59,9 +56,7 @@ body { font-family: 'Segoe UI', sans-serif; background: #f0f4f8; min-height: 100
 .header-title { font-size: 22px; font-weight: 800; letter-spacing: 2px; color: white; }
 .header-title .azha { color: #00BFFF; }
 .header-sub { font-size: 9px; color: rgba(255,255,255,0.65); letter-spacing: 2px; }
-.header-right {
-  display: flex; flex-direction: column; align-items: flex-end; gap: 5px;
-}
+.header-right { display: flex; flex-direction: column; align-items: flex-end; gap: 5px; }
 .user-badge {
   background: rgba(255,255,255,0.15); border-radius: 12px;
   padding: 4px 12px; font-size: 11px; color: white; font-weight: 600;
@@ -71,6 +66,26 @@ body { font-family: 'Segoe UI', sans-serif; background: #f0f4f8; min-height: 100
   font-size: 11px; color: rgba(255,255,255,0.7);
   background: none; border: 1px solid rgba(255,255,255,0.3);
   border-radius: 8px; padding: 3px 10px; cursor: pointer;
+}
+
+/* Sync status bar */
+.sync-bar {
+  background: #0d5c8a; padding: 4px 16px;
+  display: flex; align-items: center; justify-content: space-between;
+  font-size: 11px; color: rgba(255,255,255,0.8);
+}
+.sync-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  display: inline-block; margin-right: 5px;
+  background: #aaa;
+}
+.sync-dot.syncing { background: #f6ad55; animation: pulse 1s infinite; }
+.sync-dot.ok { background: #48bb78; }
+.sync-dot.error { background: #e53e3e; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+.btn-manual-sync {
+  background: rgba(255,255,255,0.15); border: none; color: white;
+  padding: 2px 10px; border-radius: 10px; font-size: 11px; cursor: pointer;
 }
 
 .nav { display: flex; background: #1a3a5c; border-top: 1px solid rgba(255,255,255,0.1); }
@@ -149,7 +164,6 @@ select:focus, input:focus { outline: none; border-color: #20B2AA; }
   box-shadow: 0 3px 8px rgba(32,178,170,0.4);
 }
 
-/* Manager History extras */
 .section-title {
   font-size: 14px; font-weight: 700; color: #1a3a5c;
   margin: 16px 0 10px; padding-left: 4px;
@@ -242,13 +256,26 @@ select:focus, input:focus { outline: none; border-color: #20B2AA; }
   80%  { opacity:1; }
   100% { opacity:0; }
 }
+
+/* Loading overlay */
+.loading-overlay {
+  display: none; position: fixed; top: 0; left: 0;
+  width: 100%; height: 100%; background: rgba(26,58,92,0.85);
+  z-index: 500; align-items: center; justify-content: center;
+  flex-direction: column; gap: 14px;
+}
+.loading-overlay.show { display: flex; }
+.spinner {
+  width: 40px; height: 40px; border: 4px solid rgba(255,255,255,0.3);
+  border-top-color: #00BFFF; border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-text { color: white; font-size: 14px; }
 </style>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#1a3a5c">
 <link rel="apple-touch-icon" href="icon.png">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="AL AZHA">
 </head>
 <body>
 
@@ -284,9 +311,14 @@ select:focus, input:focus { outline: none; border-color: #20B2AA; }
     <button class="btn-login" onclick="doLogin()">Login →</button>
     <div class="login-error" id="login-error">❌ Wrong PIN. Try again.</div>
   </div>
-  
 </div>
 <div style="position:fixed;bottom:16px;left:0;width:100%;text-align:center;font-size:13px;font-weight:600;color:white;z-index:10;" id="credit">by Noushad Omar</div>
+
+<!-- Loading overlay -->
+<div class="loading-overlay" id="loading-overlay">
+  <div class="spinner"></div>
+  <div class="loading-text" id="loading-text">Syncing data...</div>
+</div>
 
 <!-- MAIN APP -->
 <div class="app-screen" id="app-screen">
@@ -299,6 +331,15 @@ select:focus, input:focus { outline: none; border-color: #20B2AA; }
       <div class="user-badge" id="user-badge">User</div>
       <button class="btn-logout" onclick="doLogout()">Logout</button>
     </div>
+  </div>
+
+  <!-- Sync status bar -->
+  <div class="sync-bar">
+    <div>
+      <span class="sync-dot" id="sync-dot"></span>
+      <span id="sync-status-text">Not synced</span>
+    </div>
+    <button class="btn-manual-sync" onclick="manualSync()">🔄 Sync Now</button>
   </div>
 
   <div class="nav" id="main-nav">
@@ -328,9 +369,9 @@ select:focus, input:focus { outline: none; border-color: #20B2AA; }
       </div>
     </div>
     <div class="salesman-list" id="salesman-list"></div>
-  <div id="reset-section" style="display:none;margin-top:16px;text-align:center;">
-    <button onclick="resetAllData()" style="background:#e53e3e;color:white;border:none;border-radius:10px;padding:12px 24px;font-size:14px;font-weight:600;cursor:pointer;">🔄 Reset All Data to Original</button>
-  </div>
+    <div id="reset-section" style="display:none;margin-top:16px;text-align:center;">
+      <button onclick="resetAllData()" style="background:#e53e3e;color:white;border:none;border-radius:10px;padding:12px 24px;font-size:14px;font-weight:600;cursor:pointer;">🔄 Reset All Data to Original</button>
+    </div>
   </div>
 
   <!-- Collect -->
@@ -429,11 +470,10 @@ select:focus, input:focus { outline: none; border-color: #20B2AA; }
 
 <div class="toast" id="toast"></div>
 
-
 <script>
-const SHEET_URL = "https://script.google.com/macros/s/AKfycbw-iTVHGOWx_RpfMfFs71lZBZ8VVMXbE6vLO-RGhISjonirxdplBtxUKsFafyd93qg/exec";
+const SHEET_URL = "https://script.google.com/macros/s/AKfycby-5uvZvm12U68fZmIJHtDvMKrxZ3ws8geUuVXT-y6eHYSOtlDt1P5jBo6drvaLFA/exec";
+const POLL_INTERVAL = 30000; // 30 seconds auto-sync
 
-// PINs
 const PINS = {
   MANAGER: '2523', BILAL: '2222',
   NAVAS: '1111', RIYAS: '2222', FAISAL: '3333', NOUFAL: '4444', NIYAS: '5555'
@@ -446,6 +486,12 @@ const USER_LABELS = {
 
 let currentUser = null;
 let isManager = false;
+let pollTimer = null;
+let selectedMethod = '';
+let pendingReceipt = null;
+let receiptSaved = false;
+let lastSyncTime = null;
+let isSyncing = false;
 
 const initialData = {
   NAVAS: { name:"Navas", total:41009.55, customers:[
@@ -493,11 +539,18 @@ const initialData = {
 
 let appData = JSON.parse(JSON.stringify(initialData));
 let collections = [];
-let selectedMethod = '';
-let pendingReceipt = null;
-let receiptSaved = false;
 
-function loadData() {
+// ─── SYNC STATUS UI ───────────────────────────────────────────────────────────
+function setSyncStatus(state, msg) {
+  const dot = document.getElementById('sync-dot');
+  const txt = document.getElementById('sync-status-text');
+  if (!dot) return;
+  dot.className = 'sync-dot ' + state;
+  txt.textContent = msg;
+}
+
+// ─── DATA PERSISTENCE ─────────────────────────────────────────────────────────
+function loadLocalData() {
   try {
     const d = localStorage.getItem('alazha_data_v3');
     if (d) appData = JSON.parse(d);
@@ -506,65 +559,147 @@ function loadData() {
   } catch(e) {}
 }
 
-function syncFromSheet() {
-  const img = new Image();
-  img.onload = img.onerror = function() {};
-  
-  fetch(SHEET_URL + '?action=read', { method: 'GET', mode: 'cors' })
-  .then(r => r.json())
-  .then(data => {
-    if (data.status === 'success' && data.data && data.data.length > 0) {
-      // Merge sheet data with local
-      const sheetReceipts = data.data;
-      
-      // Reset appData to initial
-      appData = JSON.parse(JSON.stringify(initialData));
-      
-      // Apply all collections from sheet
-      sheetReceipts.forEach(c => {
-        if (c.salesmanKey && appData[c.salesmanKey]) {
-          const custObj = appData[c.salesmanKey].customers.find(x => x.name === c.customer);
-          if (custObj) {
-            custObj.outstanding = Math.max(0, custObj.outstanding - parseFloat(c.amount));
-          }
-        } else {
-          // Try to find by salesman name
-          Object.keys(appData).forEach(key => {
-            if (appData[key].name === c.salesman || appData[key].name === c.salesmanName) {
-              const custObj = appData[key].customers.find(x => x.name === c.customer);
-              if (custObj) {
-                custObj.outstanding = Math.max(0, custObj.outstanding - parseFloat(c.amount));
-              }
-            }
-          });
-        }
-      });
-      
-      collections = sheetReceipts;
-      saveData();
-      renderDashboard();
-      showToast('✅ Data synced from Sheet!');
-    }
-  })
-  .catch(() => {
-    // Offline - use local data
-  });
-}
-
-function saveData() {
+function saveLocalData() {
   localStorage.setItem('alazha_data_v3', JSON.stringify(appData));
   localStorage.setItem('alazha_coll_v3', JSON.stringify(collections));
 }
 
+// ─── SYNC FROM SHEET (FETCH WITH CORS) ───────────────────────────────────────
+function syncFromSheet(showLoader) {
+  if (isSyncing) return;
+  isSyncing = true;
+  setSyncStatus('syncing', 'Syncing...');
+
+  if (showLoader) {
+    document.getElementById('loading-overlay').classList.add('show');
+    document.getElementById('loading-text').textContent = 'Loading data from server...';
+  }
+
+  fetch(SHEET_URL + '?action=read', {
+    method: 'GET',
+    mode: 'cors',
+    cache: 'no-cache'
+  })
+  .then(r => {
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return r.json();
+  })
+  .then(data => {
+    isSyncing = false;
+    if (showLoader) document.getElementById('loading-overlay').classList.remove('show');
+
+    if (data.status === 'success' && Array.isArray(data.data)) {
+      // Rebuild appData from initial + sheet records
+      appData = JSON.parse(JSON.stringify(initialData));
+      const sheetReceipts = data.data;
+
+      sheetReceipts.forEach(c => {
+        const key = c.salesmanKey || findKeyByName(c.salesman || c.salesmanName);
+        if (key && appData[key]) {
+          const custObj = appData[key].customers.find(x => x.name === c.customer);
+          if (custObj) {
+            custObj.outstanding = Math.max(0, custObj.outstanding - parseFloat(c.amount || 0));
+          }
+        }
+      });
+
+      collections = sheetReceipts.map(c => ({ ...c, synced: true }));
+      saveLocalData();
+      renderDashboard();
+      if (document.getElementById('page-history').classList.contains('active')) {
+        if (isManager) { renderManagerStats(); renderHistory('ALL'); }
+        else renderHistory(currentUser);
+      }
+
+      lastSyncTime = new Date();
+      const timeStr = lastSyncTime.toLocaleTimeString('en-AE', {hour:'2-digit', minute:'2-digit'});
+      setSyncStatus('ok', 'Synced ' + timeStr);
+    } else {
+      setSyncStatus('error', 'Sync failed');
+    }
+  })
+  .catch(err => {
+    isSyncing = false;
+    if (showLoader) document.getElementById('loading-overlay').classList.remove('show');
+    setSyncStatus('error', 'Offline – local data');
+    console.warn('Sync error:', err);
+  });
+}
+
+function findKeyByName(name) {
+  if (!name) return null;
+  return Object.keys(appData).find(k => appData[k].name === name) || null;
+}
+
+function manualSync() {
+  syncFromSheet(false);
+  showToast('🔄 Syncing...');
+}
+
+function startPolling() {
+  stopPolling();
+  pollTimer = setInterval(() => {
+    if (currentUser) syncFromSheet(false);
+  }, POLL_INTERVAL);
+}
+
+function stopPolling() {
+  if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
+}
+
+// ─── SAVE TO SHEET (FETCH POST with fallback to GET) ─────────────────────────
+function saveToSheet(receipt) {
+  return new Promise((resolve, reject) => {
+    // Try POST first (more reliable for Apps Script)
+    const body = new URLSearchParams({
+      action: 'write',
+      receiptNo: receipt.receiptNo,
+      date: receipt.date,
+      time: receipt.time,
+      customer: receipt.customer,
+      salesman: receipt.salesman,
+      salesmanKey: receipt.salesmanKey || '',
+      amount: receipt.amount,
+      method: receipt.method,
+      ref: receipt.ref || '',
+      collectedBy: receipt.collectedBy || '',
+      timestamp: receipt.timestamp || ''
+    });
+
+    fetch(SHEET_URL, {
+      method: 'POST',
+      mode: 'cors',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: body.toString()
+    })
+    .then(r => r.json())
+    .then(data => {
+      if (data.status === 'success') resolve(true);
+      else reject(new Error(data.message || 'Save failed'));
+    })
+    .catch(() => {
+      // Fallback: GET request
+      fetch(SHEET_URL + '?' + body.toString(), { method: 'GET', mode: 'cors', cache: 'no-cache' })
+      .then(r => r.json())
+      .then(data => {
+        if (data.status === 'success') resolve(true);
+        else reject(new Error('Save failed'));
+      })
+      .catch(reject);
+    });
+  });
+}
+
+// ─── FORMATTING ───────────────────────────────────────────────────────────────
 function fmt(n) {
   return 'AED ' + parseFloat(n).toLocaleString('en-AE', {minimumFractionDigits:2, maximumFractionDigits:2});
 }
 
-// LOGIN
+// ─── LOGIN ────────────────────────────────────────────────────────────────────
 function doLogin() {
   const user = document.getElementById('login-user').value;
-  const pin = document.getElementById('login-pin').value;
-  const err = document.getElementById('login-error');
+  const pin  = document.getElementById('login-pin').value;
+  const err  = document.getElementById('login-error');
 
   if (!user) { err.textContent = '❌ Please select a user.'; err.style.display = 'block'; return; }
   if (PINS[user] !== pin) { err.style.display = 'block'; return; }
@@ -576,31 +711,28 @@ function doLogin() {
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('app-screen').style.display = 'block';
   document.getElementById('credit').style.color = '#888';
-  if (isManager) document.getElementById('reset-section').style.display = 'block';
-  else document.getElementById('reset-section').style.display = 'none';
+  document.getElementById('reset-section').style.display = isManager ? 'block' : 'none';
 
   const badge = document.getElementById('user-badge');
   badge.textContent = '👤 ' + USER_LABELS[user];
-  if (isManager) badge.className = 'user-badge manager';
-  else badge.className = 'user-badge';
+  badge.className = isManager ? 'user-badge manager' : 'user-badge';
 
-  // If salesman, lock salesman dropdown to their own
   if (!isManager) {
     const sel = document.getElementById('sel-salesman');
-    sel.value = user;
-    sel.disabled = true;
+    sel.value = user; sel.disabled = true;
     onSalesmanChange();
-    // Hide collect tab for manager-only restriction? No - all can collect
   }
+  if (isManager) document.getElementById('manager-stats').style.display = 'block';
 
-  // Manager history filter shows all; salesman shows only their own by default
+  // Load local first, then sync from sheet
+  loadLocalData();
   renderDashboard();
-  if (isManager) {
-    document.getElementById('manager-stats').style.display = 'block';
-  }
+  syncFromSheet(true);   // <-- This was missing before!
+  startPolling();        // <-- Auto-refresh every 30 seconds
 }
 
 function doLogout() {
+  stopPolling();
   currentUser = null; isManager = false;
   document.getElementById('login-screen').style.display = 'flex';
   document.getElementById('app-screen').style.display = 'none';
@@ -608,13 +740,14 @@ function doLogout() {
   document.getElementById('login-user').value = '';
   document.getElementById('login-pin').value = '';
   document.getElementById('sel-salesman').disabled = false;
+  setSyncStatus('', 'Not synced');
 }
 
-document.getElementById('login-pin').addEventListener('keydown', function(e) {
+document.getElementById('login-pin').addEventListener('keydown', e => {
   if (e.key === 'Enter') doLogin();
 });
 
-// PAGES
+// ─── PAGES ────────────────────────────────────────────────────────────────────
 function showPage(page, btn) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
@@ -622,43 +755,34 @@ function showPage(page, btn) {
   btn.classList.add('active');
   if (page === 'dashboard') renderDashboard();
   if (page === 'history') {
-    if (isManager) {
-      renderManagerStats();
-      renderHistory('ALL');
-    } else {
-      renderHistory(currentUser);
-      // Set active chip
-      document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
-    }
+    if (isManager) { renderManagerStats(); renderHistory('ALL'); }
+    else renderHistory(currentUser);
   }
 }
 
+// ─── DASHBOARD ────────────────────────────────────────────────────────────────
 function renderDashboard() {
   let totalOut = 0, totalCust = 0;
   const today = new Date().toDateString();
   let todayAmt = 0, todayCount = 0;
 
-  // Today's collections - manager sees all, salesman sees own
   collections.forEach(c => {
-    if (new Date(c.timestamp).toDateString() === today) {
-      if (isManager || c.salesmanKey === currentUser) {
-        todayAmt += parseFloat(c.amount);
-        todayCount++;
-      }
+    const cDate = c.timestamp ? new Date(c.timestamp).toDateString() : '';
+    if (cDate === today && (isManager || c.salesmanKey === currentUser)) {
+      todayAmt += parseFloat(c.amount || 0);
+      todayCount++;
     }
   });
 
   let html = '';
-  const keys = isManager ? Object.keys(appData) : [currentUser];
-
   Object.keys(appData).forEach(key => {
+    if (!isManager && key !== currentUser) return;
     const s = appData[key];
     const remaining = s.customers.reduce((a, c) => a + c.outstanding, 0);
     const collected = s.total - remaining;
     const pct = s.total > 0 ? Math.min(100, Math.round((collected / s.total) * 100)) : 0;
     const activeCust = s.customers.filter(c => c.outstanding > 0).length;
-    totalOut += remaining;
-    totalCust += activeCust;
+    totalOut += remaining; totalCust += activeCust;
 
     html += `<div class="salesman-card">
       <div class="salesman-header">
@@ -669,9 +793,7 @@ function renderDashboard() {
         <span style="font-size:12px;color:#888">${activeCust} customers</span>
         <span class="salesman-collected">Collected: ${fmt(collected)}</span>
       </div>
-      <div class="progress-bar">
-        <div class="progress-fill" style="width:${pct}%"></div>
-      </div>
+      <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
     </div>`;
   });
 
@@ -685,8 +807,7 @@ function renderDashboard() {
 function renderManagerStats() {
   const stats = {};
   Object.keys(appData).forEach(k => stats[k] = 0);
-  collections.forEach(c => { if (stats[c.salesmanKey] !== undefined) stats[c.salesmanKey] += c.amount; });
-
+  collections.forEach(c => { if (stats[c.salesmanKey] !== undefined) stats[c.salesmanKey] += parseFloat(c.amount || 0); });
   let html = '';
   Object.keys(stats).forEach(k => {
     html += `<div class="stat-card">
@@ -697,6 +818,7 @@ function renderManagerStats() {
   document.getElementById('stat-grid').innerHTML = html;
 }
 
+// ─── COLLECT FORM ─────────────────────────────────────────────────────────────
 function onSalesmanChange() {
   const sal = document.getElementById('sel-salesman').value;
   const custSel = document.getElementById('sel-customer');
@@ -714,7 +836,7 @@ function onSalesmanChange() {
 }
 
 function onCustomerChange() {
-  const sal = document.getElementById('sel-salesman').value;
+  const sal  = document.getElementById('sel-salesman').value;
   const cust = document.getElementById('sel-customer').value;
   const info = document.getElementById('customer-info');
   if (sal && cust) {
@@ -729,7 +851,7 @@ function onCustomerChange() {
 }
 
 function updateAmountDisplay() {
-  const val = parseFloat(document.getElementById('inp-amount').value);
+  const val  = parseFloat(document.getElementById('inp-amount').value);
   const disp = document.getElementById('amount-display');
   if (val > 0) { disp.textContent = fmt(val); disp.style.display = 'block'; }
   else { disp.style.display = 'none'; }
@@ -745,21 +867,22 @@ function selectMethod(m, btn) {
   else { rg.style.display = 'none'; }
 }
 
+// ─── RECEIPT ──────────────────────────────────────────────────────────────────
 function generateReceipt() {
-  const sal = document.getElementById('sel-salesman').value;
-  const cust = document.getElementById('sel-customer').value;
+  const sal    = document.getElementById('sel-salesman').value;
+  const cust   = document.getElementById('sel-customer').value;
   const amount = parseFloat(document.getElementById('inp-amount').value);
-  const ref = document.getElementById('inp-ref').value;
+  const ref    = document.getElementById('inp-ref').value;
 
-  if (!sal) { showToast('Please select a salesman'); return; }
-  if (!cust) { showToast('Please select a customer'); return; }
+  if (!sal)    { showToast('Please select a salesman'); return; }
+  if (!cust)   { showToast('Please select a customer'); return; }
   if (!amount || amount <= 0) { showToast('Please enter a valid amount'); return; }
   if (!selectedMethod) { showToast('Please select payment method'); return; }
 
   const now = new Date();
   const dateStr = now.toLocaleDateString('en-AE');
   const timeStr = now.toLocaleTimeString('en-AE', {hour:'2-digit', minute:'2-digit'});
-  const rcptNo = 'RCP-' + now.getFullYear().toString().slice(-2) +
+  const rcptNo  = 'RCP-' + now.getFullYear().toString().slice(-2) +
     String(now.getMonth()+1).padStart(2,'0') +
     String(now.getDate()).padStart(2,'0') + '-' +
     String(collections.length + 1).padStart(3,'0');
@@ -768,8 +891,8 @@ function generateReceipt() {
     receiptNo: rcptNo, date: dateStr, time: timeStr,
     customer: cust, salesman: appData[sal].name,
     salesmanKey: sal, collectedBy: USER_LABELS[currentUser],
-    amount: amount, method: selectedMethod,
-    ref: ref, timestamp: now.toISOString(), synced: false
+    amount, method: selectedMethod, ref,
+    timestamp: now.toISOString(), synced: false
   };
   receiptSaved = false;
 
@@ -787,43 +910,34 @@ function generateReceipt() {
   const btn = document.getElementById('btn-save');
   btn.textContent = '⏳ Saving...';
   btn.disabled = true;
+  btn.onclick = null;
+
   document.getElementById('receipt-overlay').classList.add('show');
   autoSaveToSheet();
 }
 
 function autoSaveToSheet() {
-  const params = new URLSearchParams({
-    receiptNo: pendingReceipt.receiptNo,
-    date: pendingReceipt.date,
-    time: pendingReceipt.time,
-    customer: pendingReceipt.customer,
-    salesman: pendingReceipt.salesman,
-    salesmanKey: pendingReceipt.salesmanKey || '',
-    amount: pendingReceipt.amount,
-    method: pendingReceipt.method,
-    ref: pendingReceipt.ref || '',
-    collectedBy: pendingReceipt.collectedBy || ''
-  });
-
-  const img = new Image();
-  img.onload = img.onerror = function() {
+  saveToSheet(pendingReceipt)
+  .then(() => {
     pendingReceipt.synced = true;
     commitReceipt();
-    document.getElementById('btn-save').textContent = '✅ Saved to Sheet!';
+    const btn = document.getElementById('btn-save');
+    btn.textContent = '✅ Saved!';
+    btn.disabled = true;
     showToast('✅ Saved to Google Sheets!');
-  };
-  img.src = SHEET_URL + '?' + params.toString();
-
-  setTimeout(() => {
-    if (!receiptSaved) {
-      pendingReceipt.synced = false;
-      commitReceipt();
-      const btn = document.getElementById('btn-save');
-      btn.textContent = '🔄 Retry';
-      btn.disabled = false;
-      btn.onclick = retrySave;
-    }
-  }, 10000);
+    setSyncStatus('ok', 'Saved just now');
+  })
+  .catch(() => {
+    // Save locally even if sheet failed
+    pendingReceipt.synced = false;
+    commitReceipt();
+    const btn = document.getElementById('btn-save');
+    btn.textContent = '🔄 Retry';
+    btn.disabled = false;
+    btn.onclick = retrySave;
+    showToast('⚠️ Saved locally. Tap Retry.');
+    setSyncStatus('error', 'Sheet save failed');
+  });
 }
 
 function retrySave() {
@@ -831,20 +945,20 @@ function retrySave() {
   btn.textContent = '⏳ Retrying...';
   btn.disabled = true;
   const last = collections[collections.length - 1];
-  const params = new URLSearchParams({
-    receiptNo: last.receiptNo, date: last.date, time: last.time,
-    customer: last.customer, salesman: last.salesman,
-    amount: last.amount, method: last.method,
-    ref: last.ref || '', collectedBy: last.collectedBy || ''
-  });
-  const img = new Image();
-  img.onload = img.onerror = function() {
+  saveToSheet(last)
+  .then(() => {
     last.synced = true;
-    saveData();
+    saveLocalData();
     btn.textContent = '✅ Saved!';
     showToast('✅ Saved to Google Sheets!');
-  };
-  img.src = SHEET_URL + '?' + params.toString();
+    setSyncStatus('ok', 'Synced');
+  })
+  .catch(() => {
+    btn.textContent = '🔄 Retry';
+    btn.disabled = false;
+    btn.onclick = retrySave;
+    showToast('❌ Still offline. Try again.');
+  });
 }
 
 function commitReceipt() {
@@ -853,7 +967,7 @@ function commitReceipt() {
   const custObj = appData[pendingReceipt.salesmanKey].customers.find(c => c.name === pendingReceipt.customer);
   if (custObj) custObj.outstanding = Math.max(0, custObj.outstanding - pendingReceipt.amount);
   collections.push(pendingReceipt);
-  saveData();
+  saveLocalData();
   resetForm();
 }
 
@@ -879,19 +993,24 @@ function closeReceipt() {
 }
 
 function resetForm() {
-  if (!isManager) return; // salesman keeps their salesman selected
-  document.getElementById('sel-salesman').value = '';
-  document.getElementById('sel-customer').innerHTML = '<option value="">-- Select Customer --</option>';
-  document.getElementById('sel-customer').disabled = true;
+  document.getElementById('inp-amount').value = '';
+  document.getElementById('inp-ref').value = '';
   document.getElementById('customer-info').style.display = 'none';
   document.getElementById('amount-display').style.display = 'none';
   document.getElementById('ref-group').style.display = 'none';
   document.querySelectorAll('.method-btn').forEach(b => b.classList.remove('selected'));
-  document.getElementById('inp-amount').value = '';
-  document.getElementById('inp-ref').value = '';
   selectedMethod = '';
+  if (isManager) {
+    document.getElementById('sel-salesman').value = '';
+    document.getElementById('sel-customer').innerHTML = '<option value="">-- Select Customer --</option>';
+    document.getElementById('sel-customer').disabled = true;
+  } else {
+    // Salesman: keep their own name, just refresh customer list
+    onSalesmanChange();
+  }
 }
 
+// ─── HISTORY ──────────────────────────────────────────────────────────────────
 function renderHistory(filter) {
   const list = document.getElementById('history-list');
   let filtered = filter === 'ALL' ? collections : collections.filter(c => c.salesmanKey === filter);
@@ -919,7 +1038,9 @@ function filterHistory(filter, btn) {
   renderHistory(filter);
 }
 
+// ─── RESET ────────────────────────────────────────────────────────────────────
 function resetAllData() {
+  if (!confirm('Reset all data to original?')) return;
   localStorage.removeItem('alazha_data_v3');
   localStorage.removeItem('alazha_coll_v3');
   appData = JSON.parse(JSON.stringify(initialData));
@@ -937,7 +1058,12 @@ function showToast(msg) {
   setTimeout(() => t.classList.remove('show'), 2500);
 }
 
-loadData();
+// Page visibility: re-sync when user comes back to tab
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden && currentUser) syncFromSheet(false);
+});
+
+loadLocalData();
 </script>
 
 <script>
