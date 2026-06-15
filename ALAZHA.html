@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="AlAzha">
+<title> </title>
+<title>&#8203;</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Segoe UI', sans-serif; background: #f0f4f8; min-height: 100vh; }
+
+/* Login */
+.login-screen {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #1a3a5c, #0d5c8a);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center; padding: 24px;
+}
+.login-brand { text-align: center; margin-bottom: 36px; }
+.login-title { font-size: 32px; font-weight: 800; color: white; letter-spacing: 2px; }
+.login-title .azha { color: #00BFFF; }
+.login-sub { font-size: 12px; color: rgba(255,255,255,0.6); letter-spacing: 3px; margin-top: 4px; }
+.login-card {
+  background: white; border-radius: 20px; padding: 28px;
+  width: 100%; max-width: 340px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+}
+.login-card h2 { font-size: 18px; color: #1a3a5c; margin-bottom: 20px; text-align: center; }
+.login-group { margin-bottom: 14px; }
+.login-group label { display: block; font-size: 12px; font-weight: 600; color: #555; margin-bottom: 6px; }
+.login-group select, .login-group input {
+  width: 100%; padding: 12px 14px; border: 1.5px solid #e2e8f0;
+  border-radius: 10px; font-size: 15px; color: #333;
+}
+.login-group select:focus, .login-group input:focus { outline: none; border-color: #20B2AA; }
+.btn-login {
+  width: 100%; padding: 14px;
+  background: linear-gradient(135deg, #20B2AA, #1a9a93);
+  color: white; border: none; border-radius: 10px;
+  font-size: 16px; font-weight: 700; cursor: pointer; margin-top: 8px;
+  box-shadow: 0 4px 12px rgba(32,178,170,0.4);
+}
+.login-error { color: #e53e3e; font-size: 13px; text-align: center; margin-top: 10px; display: none; }
+
+/* Main App */
+.app-screen { display: none; }
+
+.header {
+  background: linear-gradient(135deg, #1a3a5c, #0d5c8a);
+  padding: 10px 16px 8px;
+  display: flex; flex-direction: row; align-items: center; justify-content: space-between;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  padding-left: 60px;
+}
+.header-text { text-align: left; }
+.header-title { font-size: 22px; font-weight: 800; letter-spacing: 2px; color: white; }
+.header-title .azha { color: #00BFFF; }
+.header-sub { font-size: 9px; color: rgba(255,255,255,0.65); letter-spacing: 2px; }
+.header-right {
+  display: flex; flex-direction: column; align-items: flex-end; gap: 5px;
+}
+.user-badge {
+  background: rgba(255,255,255,0.15); border-radius: 12px;
+  padding: 4px 12px; font-size: 11px; color: white; font-weight: 600;
+}
+.user-badge.manager { background: #00BFFF; color: #1a3a5c; }
+.btn-logout {
+  font-size: 11px; color: rgba(255,255,255,0.7);
+  background: none; border: 1px solid rgba(255,255,255,0.3);
+  border-radius: 8px; padding: 3px 10px; cursor: pointer;
+}
+
+.nav { display: flex; background: #1a3a5c; border-top: 1px solid rgba(255,255,255,0.1); }
+.nav-btn {
+  flex: 1; padding: 10px 4px; color: rgba(255,255,255,0.6);
+  border: none; background: none; font-size: 12px; cursor: pointer;
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+}
+.nav-btn.active { color: #20B2AA; border-bottom: 2px solid #20B2AA; }
+.nav-btn span { font-size: 18px; }
+
+.page { display: none; padding: 16px; }
+.page.active { display: block; }
+
+.summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+.summary-card {
+  background: white; border-radius: 12px; padding: 14px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08); text-align: center;
+}
+.summary-card .label { font-size: 11px; color: #666; margin-bottom: 4px; }
+.summary-card .value { font-size: 20px; font-weight: 700; color: #1a3a5c; }
+.summary-card .sub { font-size: 11px; color: #20B2AA; margin-top: 2px; }
+.summary-card.highlight { background: linear-gradient(135deg, #1a3a5c, #0d5c8a); }
+.summary-card.highlight .label { color: rgba(255,255,255,0.7); }
+.summary-card.highlight .value { color: white; font-size: 18px; }
+.summary-card.highlight .sub { color: #00BFFF; }
+
+.salesman-list { display: flex; flex-direction: column; gap: 10px; }
+.salesman-card {
+  background: white; border-radius: 12px; padding: 14px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+}
+.salesman-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.salesman-name { font-weight: 600; color: #1a3a5c; font-size: 15px; }
+.salesman-total { font-weight: 700; color: #e53e3e; font-size: 15px; }
+.salesman-collected { color: #20B2AA; font-size: 13px; font-weight: 600; }
+.progress-bar { height: 6px; background: #e2e8f0; border-radius: 3px; overflow: hidden; }
+.progress-fill { height: 100%; background: linear-gradient(90deg, #20B2AA, #1a3a5c); border-radius: 3px; }
+
+.form-card {
+  background: white; border-radius: 12px; padding: 16px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08); margin-bottom: 12px;
+}
+.form-title { font-size: 16px; font-weight: 700; color: #1a3a5c; margin-bottom: 14px; }
+.form-group { margin-bottom: 12px; }
+label { display: block; font-size: 12px; font-weight: 600; color: #555; margin-bottom: 4px; }
+select, input {
+  width: 100%; padding: 10px 12px; border: 1.5px solid #e2e8f0;
+  border-radius: 8px; font-size: 14px; color: #333; background: white;
+}
+select:focus, input:focus { outline: none; border-color: #20B2AA; }
+
+.customer-info {
+  background: #f7fafc; border-radius: 8px; padding: 10px;
+  margin-top: 8px; font-size: 13px; color: #555;
+}
+.customer-info .outstanding { color: #e53e3e; font-weight: 700; font-size: 15px; }
+.amount-display {
+  background: linear-gradient(135deg, #1a3a5c, #20B2AA);
+  border-radius: 8px; padding: 12px; text-align: center;
+  color: white; font-size: 24px; font-weight: 700; margin-top: 8px;
+}
+
+.payment-methods { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 8px; }
+.method-btn {
+  padding: 10px 4px; border: 2px solid #e2e8f0; border-radius: 8px;
+  background: white; cursor: pointer; font-size: 12px; text-align: center;
+}
+.method-btn.selected { border-color: #20B2AA; background: #e6f7f7; color: #1a3a5c; font-weight: 600; }
+
+.btn-collect {
+  width: 100%; padding: 14px;
+  background: linear-gradient(135deg, #20B2AA, #1a9a93);
+  color: white; border: none; border-radius: 10px;
+  font-size: 16px; font-weight: 700; cursor: pointer; margin-top: 8px;
+  box-shadow: 0 3px 8px rgba(32,178,170,0.4);
+}
+
+/* Manager History extras */
+.section-title {
+  font-size: 14px; font-weight: 700; color: #1a3a5c;
+  margin: 16px 0 10px; padding-left: 4px;
+}
+.stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 16px; }
+.stat-card {
+  background: white; border-radius: 10px; padding: 12px 8px;
+  text-align: center; box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+}
+.stat-card .s-val { font-size: 16px; font-weight: 700; color: #1a3a5c; }
+.stat-card .s-label { font-size: 10px; color: #888; margin-top: 2px; }
+
+.receipt-overlay {
+  display: none; position: fixed; top: 0; left: 0;
+  width: 100%; height: 100%; background: rgba(0,0,0,0.7);
+  z-index: 1000; overflow-y: auto; padding: 20px;
+}
+.receipt-overlay.show { display: flex; align-items: flex-start; justify-content: center; }
+.receipt-box {
+  background: white; border-radius: 16px; padding: 20px;
+  width: 100%; max-width: 380px; margin: auto;
+}
+.receipt-header { text-align: center; margin-bottom: 16px; }
+.receipt-brand { font-size: 22px; font-weight: 800; }
+.receipt-brand .al { color: #1a3a5c; }
+.receipt-brand .azha { color: #20B2AA; }
+.receipt-company { font-size: 11px; color: #666; letter-spacing: 1px; }
+.receipt-subtitle { font-size: 12px; color: #888; margin-top: 4px; }
+.receipt-divider { border: none; border-top: 1.5px dashed #ddd; margin: 12px 0; }
+.receipt-no { text-align: center; font-size: 12px; color: #888; margin-bottom: 12px; }
+.receipt-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 13px; }
+.receipt-row .key { color: #666; }
+.receipt-row .val { font-weight: 600; color: #333; text-align: right; max-width: 60%; }
+.receipt-amount-box {
+  background: linear-gradient(135deg, #1a3a5c, #20B2AA);
+  border-radius: 10px; padding: 14px; text-align: center; color: white; margin: 12px 0;
+}
+.receipt-amount-box .amt-label { font-size: 11px; opacity: 0.8; }
+.receipt-amount-box .amt-value { font-size: 26px; font-weight: 700; }
+
+.receipt-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
+.btn-whatsapp {
+  padding: 12px; background: #25D366; color: white;
+  border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer;
+}
+.btn-save-sheet {
+  padding: 12px; background: #1a3a5c; color: white;
+  border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer;
+}
+.btn-close-receipt {
+  width: 100%; padding: 10px; background: #f0f4f8; color: #666;
+  border: none; border-radius: 8px; font-size: 13px; cursor: pointer; margin-top: 8px;
+}
+
+.history-filter { display: flex; gap: 8px; margin-bottom: 12px; overflow-x: auto; padding-bottom: 4px; }
+.filter-chip {
+  padding: 6px 14px; border: 1.5px solid #e2e8f0; border-radius: 20px;
+  background: white; font-size: 12px; cursor: pointer; white-space: nowrap; color: #555;
+}
+.filter-chip.active { border-color: #20B2AA; background: #e6f7f7; color: #1a3a5c; font-weight: 600; }
+
+.history-item {
+  background: white; border-radius: 12px; padding: 14px;
+  margin-bottom: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+  border-left: 4px solid #20B2AA;
+}
+.history-item.local { border-left-color: #f6ad55; }
+.history-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; }
+.history-customer { font-weight: 600; color: #1a3a5c; font-size: 14px; }
+.history-amount { font-weight: 700; color: #20B2AA; font-size: 16px; }
+.history-bottom { display: flex; justify-content: space-between; align-items: center; }
+.history-meta { font-size: 11px; color: #888; }
+.history-badge { font-size: 10px; padding: 3px 8px; border-radius: 12px; font-weight: 600; }
+.badge-synced { background: #e6f7f7; color: #1a9a93; }
+.badge-local { background: #fef3c7; color: #d97706; }
+
+.empty-state { text-align: center; padding: 40px 20px; color: #aaa; }
+.empty-state .icon { font-size: 48px; margin-bottom: 12px; }
+
+.toast {
+  position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
+  background: #1a3a5c; color: white; padding: 10px 20px;
+  border-radius: 20px; font-size: 13px; z-index: 2000; display: none;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3); white-space: nowrap;
+}
+.toast.show { display: block; animation: fadeInOut 2.5s ease; }
+@keyframes fadeInOut {
+  0%   { opacity:0; transform:translateX(-50%) translateY(10px); }
+  20%  { opacity:1; transform:translateX(-50%) translateY(0); }
+  80%  { opacity:1; }
+  100% { opacity:0; }
+}
+</style>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1a3a5c">
+<link rel="apple-touch-icon" href="icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="AL AZHA">
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+<div class="login-screen" id="login-screen">
+  <div class="login-brand">
+    <div class="login-title">AL <span class="azha">AZHA</span></div>
+    <div class="login-sub">COMPUTER TRADING LLC</div>
+  </div>
+  <div class="login-card">
+    <h2>🔐 Sign In</h2>
+    <div class="login-group">
+      <label>Select User</label>
+      <select id="login-user">
+        <option value="">-- Select --</option>
+        <optgroup label="👔 Manager / Accountant">
+          <option value="MANAGER">Management</option>
+          <option value="BILAL">Accountant</option>
+        </optgroup>
+        <optgroup label="💼 Sales Team">
+          <option value="NAVAS">Navas</option>
+          <option value="RIYAS">Riyas</option>
+          <option value="FAISAL">Faisal</option>
+          <option value="NOUFAL">Noufal</option>
+          <option value="NIYAS">Niyas</option>
+        </optgroup>
+      </select>
+    </div>
+    <div class="login-group">
+      <label>PIN</label>
+      <input type="password" id="login-pin" placeholder="Enter PIN" inputmode="numeric" maxlength="4">
+    </div>
+    <button class="btn-login" onclick="doLogin()">Login →</button>
+    <div class="login-error" id="login-error">❌ Wrong PIN. Try again.</div>
+  </div>
+  
+</div>
+<div style="position:fixed;bottom:16px;left:0;width:100%;text-align:center;font-size:13px;font-weight:600;color:white;z-index:10;" id="credit">by Noushad Omar</div>
+
+<!-- MAIN APP -->
+<div class="app-screen" id="app-screen">
+  <div class="header">
+    <div class="header-text">
+      <div class="header-title">AL&nbsp;<span class="azha">AZHA</span></div>
+      <div class="header-sub">COMPUTER TRADING LLC</div>
+    </div>
+    <div class="header-right">
+      <div class="user-badge" id="user-badge">User</div>
+      <button class="btn-logout" onclick="doLogout()">Logout</button>
+    </div>
+  </div>
+
+  <div class="nav" id="main-nav">
+    <button class="nav-btn active" id="nav-dashboard" onclick="showPage('dashboard', this)">
+      <span>📊</span>Dashboard
+    </button>
+    <button class="nav-btn" id="nav-collect" onclick="showPage('collect', this)">
+      <span>💰</span>Collect
+    </button>
+    <button class="nav-btn" id="nav-history" onclick="showPage('history', this)">
+      <span>📋</span>History
+    </button>
+  </div>
+
+  <!-- Dashboard -->
+  <div id="page-dashboard" class="page active">
+    <div class="summary-grid">
+      <div class="summary-card highlight">
+        <div class="label">Total Outstanding</div>
+        <div class="value" id="total-outstanding">AED 0</div>
+        <div class="sub" id="total-customers">0 customers</div>
+      </div>
+      <div class="summary-card">
+        <div class="label">Collected Today</div>
+        <div class="value" id="collected-today" style="color:#20B2AA">AED 0</div>
+        <div class="sub" id="today-count">0 receipts</div>
+      </div>
+    </div>
+    <div class="salesman-list" id="salesman-list"></div>
+  <div id="reset-section" style="display:none;margin-top:16px;text-align:center;">
+    <button onclick="resetAllData()" style="background:#e53e3e;color:white;border:none;border-radius:10px;padding:12px 24px;font-size:14px;font-weight:600;cursor:pointer;">🔄 Reset All Data to Original</button>
+  </div>
+  </div>
+
+  <!-- Collect -->
+  <div id="page-collect" class="page">
+    <div class="form-card">
+      <div class="form-title">💰 New Collection</div>
+      <div class="form-group">
+        <label>Salesman</label>
+        <select id="sel-salesman" onchange="onSalesmanChange()">
+          <option value="">-- Select Salesman --</option>
+          <option value="NAVAS">Navas</option>
+          <option value="RIYAS">Riyas</option>
+          <option value="FAISAL">Faisal</option>
+          <option value="NOUFAL">Noufal</option>
+          <option value="NIYAS">Niyas</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Customer</label>
+        <select id="sel-customer" onchange="onCustomerChange()" disabled>
+          <option value="">-- Select Customer --</option>
+        </select>
+        <div id="customer-info" class="customer-info" style="display:none"></div>
+      </div>
+      <div class="form-group">
+        <label>Amount (AED)</label>
+        <input type="number" id="inp-amount" placeholder="0.00" step="0.01"
+               oninput="updateAmountDisplay()" inputmode="decimal">
+        <div id="amount-display" class="amount-display" style="display:none"></div>
+      </div>
+      <div class="form-group">
+        <label>Payment Method</label>
+        <div class="payment-methods">
+          <button class="method-btn" onclick="selectMethod('Cash', this)">💵<br>Cash</button>
+          <button class="method-btn" onclick="selectMethod('Cheque', this)">📄<br>Cheque</button>
+          <button class="method-btn" onclick="selectMethod('Transfer', this)">🏦<br>Transfer</button>
+        </div>
+      </div>
+      <div class="form-group" id="ref-group" style="display:none">
+        <label id="ref-label">Reference No.</label>
+        <input type="text" id="inp-ref" placeholder="Enter reference number">
+      </div>
+      <button class="btn-collect" onclick="generateReceipt()">Generate Receipt</button>
+    </div>
+  </div>
+
+  <!-- History -->
+  <div id="page-history" class="page">
+    <div id="manager-stats" style="display:none">
+      <div class="section-title">📊 All Collections Summary</div>
+      <div class="stat-grid" id="stat-grid"></div>
+    </div>
+    <div class="history-filter" id="history-filter">
+      <button class="filter-chip active" onclick="filterHistory('ALL', this)">All</button>
+      <button class="filter-chip" onclick="filterHistory('NAVAS', this)">Navas</button>
+      <button class="filter-chip" onclick="filterHistory('RIYAS', this)">Riyas</button>
+      <button class="filter-chip" onclick="filterHistory('FAISAL', this)">Faisal</button>
+      <button class="filter-chip" onclick="filterHistory('NOUFAL', this)">Noufal</button>
+      <button class="filter-chip" onclick="filterHistory('NIYAS', this)">Niyas</button>
+    </div>
+    <div id="history-list"></div>
+  </div>
+</div>
+
+<!-- Receipt -->
+<div class="receipt-overlay" id="receipt-overlay">
+  <div class="receipt-box">
+    <div class="receipt-header">
+      <div class="receipt-brand"><span class="al">AL </span><span class="azha">AZHA</span></div>
+      <div class="receipt-company">COMPUTER TRADING LLC</div>
+      <div class="receipt-subtitle">— Payment Receipt —</div>
+    </div>
+    <hr class="receipt-divider">
+    <div class="receipt-no" id="r-no"></div>
+    <div class="receipt-amount-box">
+      <div class="amt-label">Amount Collected</div>
+      <div class="amt-value" id="r-amount"></div>
+    </div>
+    <div class="receipt-row"><span class="key">Customer</span><span class="val" id="r-customer"></span></div>
+    <div class="receipt-row"><span class="key">Salesman</span><span class="val" id="r-salesman"></span></div>
+    <div class="receipt-row"><span class="key">Method</span><span class="val" id="r-method"></span></div>
+    <div class="receipt-row" id="r-ref-row" style="display:none">
+      <span class="key">Reference</span><span class="val" id="r-ref"></span>
+    </div>
+    <div class="receipt-row"><span class="key">Date & Time</span><span class="val" id="r-datetime"></span></div>
+    <div class="receipt-row"><span class="key">Collected by</span><span class="val" id="r-collectedby"></span></div>
+    <hr class="receipt-divider">
+    <div style="font-size:11px;text-align:center;color:#888">Thank you for your payment</div>
+    <div class="receipt-actions">
+      <button class="btn-whatsapp" onclick="shareWhatsApp()">📲 WhatsApp</button>
+      <button class="btn-save-sheet" id="btn-save">⏳ Saving...</button>
+    </div>
+    <button class="btn-close-receipt" onclick="closeReceipt()">Close</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+
+<script>
+const SHEET_URL = "https://script.google.com/macros/s/AKfycbywXiLM2Vd__iyiFjo69thKrkyBoetAy0xD3zeP3UZqHr9hBfZw77cAEQva9YmtbUo/exec";
+
+// PINs
+const PINS = {
+  MANAGER: '2523', BILAL: '2222',
+  NAVAS: '1111', RIYAS: '2222', FAISAL: '3333', NOUFAL: '4444', NIYAS: '5555'
+};
+const MANAGER_USERS = ['MANAGER', 'BILAL'];
+const USER_LABELS = {
+  MANAGER: 'Management', BILAL: 'Accountant',
+  NAVAS: 'Navas', RIYAS: 'Riyas', FAISAL: 'Faisal', NOUFAL: 'Noufal', NIYAS: 'Niyas'
+};
+
+let currentUser = null;
+let isManager = false;
+
+const initialData = {
+  NAVAS: { name:"Navas", total:41009.55, customers:[
+    {name:"STATIC DOT IT SOLUTION",outstanding:23366.95},
+    {name:"ABACUS TECHNOLOGIES",outstanding:7903.35},
+    {name:"AL SHAMIL COMPUTER TRADING",outstanding:3641.40},
+    {name:"TASKEEN REAL ESTATE LLC",outstanding:3312.75},
+    {name:"C-MERINT INTERIORS LLC",outstanding:787.50},
+    {name:"CASH CUSTOMER-NAVAS",outstanding:475.25},
+    {name:"PRAJEESH MENHAD",outstanding:372.75},
+    {name:"C-MERINT FURNITURE FACTORY LLC",outstanding:341.25},
+    {name:"C-MERINT LLC",outstanding:315.00},
+    {name:"M-RAFO",outstanding:229.80},
+    {name:"NITRA TECHNOLOGY TRADING LLC",outstanding:190.05},
+    {name:"BAHMANI GROUP LLC",outstanding:73.50}
+  ]},
+  RIYAS: { name:"Riyas", total:26684.55, customers:[
+    {name:"ACCELOUD TECHNOLOGIES CO LLC",outstanding:9064.75},
+    {name:"ALI AZAR ELECTRONICS DEVICES TRADING",outstanding:7426.05},
+    {name:"DUNESCAPE LANDSCAPING L.L.C",outstanding:3543.75},
+    {name:"GAME FORCE COMPUTER TR LLC",outstanding:2486.75},
+    {name:"RATTAN HOUSE FURNITURE LLC",outstanding:2457.00},
+    {name:"ENVIROL LLC",outstanding:808.50},
+    {name:"BUR DUBAI COMPUTER SERVICES",outstanding:262.50},
+    {name:"SIKANDAR-AQAR",outstanding:193.00},
+    {name:"CASH CUSTOMER-RIYAS",outstanding:168.00},
+    {name:"DELTA EMIRETS CONTRACTING",outstanding:164.25},
+    {name:"JOME ENGINEERING L.L.C",outstanding:110.00}
+  ]},
+  FAISAL: { name:"Faisal", total:23237.88, customers:[
+    {name:"GATEWAY INFORMATION NETWORKS",outstanding:10590.83},
+    {name:"M-JACKYS ELECTRONICS LLC",outstanding:8667.65},
+    {name:"INFOTREE COMPUTER LLC",outstanding:3806.25},
+    {name:"C-ZOOMLINE NETWORK TECHNOLOGIES LLC",outstanding:136.50},
+    {name:"CASH CUSTOMER FAISAL",outstanding:36.65}
+  ]},
+  NOUFAL: { name:"Noufal", total:8376.50, customers:[
+    {name:"RAYNA TOURISM LLC",outstanding:4607.00},
+    {name:"THE THOUGHT FACTORY",outstanding:3769.50}
+  ]},
+  NIYAS: { name:"Niyas", total:173.25, customers:[
+    {name:"CASH CUSTOMER NIYAS",outstanding:173.25}
+  ]}
+};
+
+let appData = JSON.parse(JSON.stringify(initialData));
+let collections = [];
+let selectedMethod = '';
+let pendingReceipt = null;
+let receiptSaved = false;
+
+function loadData() {
+  try {
+    const d = localStorage.getItem('alazha_data_v3');
+    if (d) appData = JSON.parse(d);
+    const c = localStorage.getItem('alazha_coll_v3');
+    if (c) collections = JSON.parse(c);
+  } catch(e) {}
+}
+
+function syncFromSheet() {
+  const img = new Image();
+  img.onload = img.onerror = function() {};
+  
+  fetch(SHEET_URL + '?action=read', { method: 'GET', mode: 'cors' })
+  .then(r => r.json())
+  .then(data => {
+    if (data.status === 'success' && data.data && data.data.length > 0) {
+      // Merge sheet data with local
+      const sheetReceipts = data.data;
+      
+      // Reset appData to initial
+      appData = JSON.parse(JSON.stringify(initialData));
+      
+      // Apply all collections from sheet
+      sheetReceipts.forEach(c => {
+        if (c.salesmanKey && appData[c.salesmanKey]) {
+          const custObj = appData[c.salesmanKey].customers.find(x => x.name === c.customer);
+          if (custObj) {
+            custObj.outstanding = Math.max(0, custObj.outstanding - parseFloat(c.amount));
+          }
+        } else {
+          // Try to find by salesman name
+          Object.keys(appData).forEach(key => {
+            if (appData[key].name === c.salesman || appData[key].name === c.salesmanName) {
+              const custObj = appData[key].customers.find(x => x.name === c.customer);
+              if (custObj) {
+                custObj.outstanding = Math.max(0, custObj.outstanding - parseFloat(c.amount));
+              }
+            }
+          });
+        }
+      });
+      
+      collections = sheetReceipts;
+      saveData();
+      renderDashboard();
+      showToast('✅ Data synced from Sheet!');
+    }
+  })
+  .catch(() => {
+    // Offline - use local data
+  });
+}
+
+function saveData() {
+  localStorage.setItem('alazha_data_v3', JSON.stringify(appData));
+  localStorage.setItem('alazha_coll_v3', JSON.stringify(collections));
+}
+
+function fmt(n) {
+  return 'AED ' + parseFloat(n).toLocaleString('en-AE', {minimumFractionDigits:2, maximumFractionDigits:2});
+}
+
+// LOGIN
+function doLogin() {
+  const user = document.getElementById('login-user').value;
+  const pin = document.getElementById('login-pin').value;
+  const err = document.getElementById('login-error');
+
+  if (!user) { err.textContent = '❌ Please select a user.'; err.style.display = 'block'; return; }
+  if (PINS[user] !== pin) { err.style.display = 'block'; return; }
+
+  err.style.display = 'none';
+  currentUser = user;
+  isManager = MANAGER_USERS.includes(user);
+
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app-screen').style.display = 'block';
+  document.getElementById('credit').style.color = '#888';
+  if (isManager) document.getElementById('reset-section').style.display = 'block';
+  else document.getElementById('reset-section').style.display = 'none';
+
+  const badge = document.getElementById('user-badge');
+  badge.textContent = '👤 ' + USER_LABELS[user];
+  if (isManager) badge.className = 'user-badge manager';
+  else badge.className = 'user-badge';
+
+  // If salesman, lock salesman dropdown to their own
+  if (!isManager) {
+    const sel = document.getElementById('sel-salesman');
+    sel.value = user;
+    sel.disabled = true;
+    onSalesmanChange();
+    // Hide collect tab for manager-only restriction? No - all can collect
+  }
+
+  // Manager history filter shows all; salesman shows only their own by default
+  renderDashboard();
+  if (isManager) {
+    document.getElementById('manager-stats').style.display = 'block';
+  }
+}
+
+function doLogout() {
+  currentUser = null; isManager = false;
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('app-screen').style.display = 'none';
+  document.getElementById('credit').style.color = 'white';
+  document.getElementById('login-user').value = '';
+  document.getElementById('login-pin').value = '';
+  document.getElementById('sel-salesman').disabled = false;
+}
+
+document.getElementById('login-pin').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') doLogin();
+});
+
+// PAGES
+function showPage(page, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  btn.classList.add('active');
+  if (page === 'dashboard') renderDashboard();
+  if (page === 'history') {
+    if (isManager) {
+      renderManagerStats();
+      renderHistory('ALL');
+    } else {
+      renderHistory(currentUser);
+      // Set active chip
+      document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+    }
+  }
+}
+
+function renderDashboard() {
+  let totalOut = 0, totalCust = 0;
+  const today = new Date().toDateString();
+  let todayAmt = 0, todayCount = 0;
+
+  // Today's collections - manager sees all, salesman sees own
+  collections.forEach(c => {
+    if (new Date(c.timestamp).toDateString() === today) {
+      if (isManager || c.salesmanKey === currentUser) {
+        todayAmt += parseFloat(c.amount);
+        todayCount++;
+      }
+    }
+  });
+
+  let html = '';
+  const keys = isManager ? Object.keys(appData) : [currentUser];
+
+  Object.keys(appData).forEach(key => {
+    const s = appData[key];
+    const remaining = s.customers.reduce((a, c) => a + c.outstanding, 0);
+    const collected = s.total - remaining;
+    const pct = s.total > 0 ? Math.min(100, Math.round((collected / s.total) * 100)) : 0;
+    const activeCust = s.customers.filter(c => c.outstanding > 0).length;
+    totalOut += remaining;
+    totalCust += activeCust;
+
+    html += `<div class="salesman-card">
+      <div class="salesman-header">
+        <span class="salesman-name">${s.name}</span>
+        <span class="salesman-total">${fmt(remaining)}</span>
+      </div>
+      <div class="salesman-header" style="margin-bottom:6px">
+        <span style="font-size:12px;color:#888">${activeCust} customers</span>
+        <span class="salesman-collected">Collected: ${fmt(collected)}</span>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" style="width:${pct}%"></div>
+      </div>
+    </div>`;
+  });
+
+  document.getElementById('total-outstanding').textContent = fmt(totalOut);
+  document.getElementById('total-customers').textContent = totalCust + ' customers';
+  document.getElementById('collected-today').textContent = fmt(todayAmt);
+  document.getElementById('today-count').textContent = todayCount + ' receipts';
+  document.getElementById('salesman-list').innerHTML = html;
+}
+
+function renderManagerStats() {
+  const stats = {};
+  Object.keys(appData).forEach(k => stats[k] = 0);
+  collections.forEach(c => { if (stats[c.salesmanKey] !== undefined) stats[c.salesmanKey] += c.amount; });
+
+  let html = '';
+  Object.keys(stats).forEach(k => {
+    html += `<div class="stat-card">
+      <div class="s-val">${fmt(stats[k]).replace('AED ','')}</div>
+      <div class="s-label">${appData[k].name}</div>
+    </div>`;
+  });
+  document.getElementById('stat-grid').innerHTML = html;
+}
+
+function onSalesmanChange() {
+  const sal = document.getElementById('sel-salesman').value;
+  const custSel = document.getElementById('sel-customer');
+  custSel.innerHTML = '<option value="">-- Select Customer --</option>';
+  document.getElementById('customer-info').style.display = 'none';
+  if (sal && appData[sal]) {
+    appData[sal].customers.filter(c => c.outstanding > 0).forEach(c => {
+      const o = document.createElement('option');
+      o.value = c.name;
+      o.textContent = c.name + ' (' + fmt(c.outstanding) + ')';
+      custSel.appendChild(o);
+    });
+    custSel.disabled = false;
+  } else { custSel.disabled = true; }
+}
+
+function onCustomerChange() {
+  const sal = document.getElementById('sel-salesman').value;
+  const cust = document.getElementById('sel-customer').value;
+  const info = document.getElementById('customer-info');
+  if (sal && cust) {
+    const c = appData[sal].customers.find(x => x.name === cust);
+    if (c) {
+      info.innerHTML = 'Outstanding: <span class="outstanding">' + fmt(c.outstanding) + '</span>';
+      info.style.display = 'block';
+      document.getElementById('inp-amount').value = c.outstanding.toFixed(2);
+      updateAmountDisplay();
+    }
+  } else { info.style.display = 'none'; }
+}
+
+function updateAmountDisplay() {
+  const val = parseFloat(document.getElementById('inp-amount').value);
+  const disp = document.getElementById('amount-display');
+  if (val > 0) { disp.textContent = fmt(val); disp.style.display = 'block'; }
+  else { disp.style.display = 'none'; }
+}
+
+function selectMethod(m, btn) {
+  selectedMethod = m;
+  document.querySelectorAll('.method-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  const rg = document.getElementById('ref-group');
+  if (m === 'Cheque') { document.getElementById('ref-label').textContent = 'Cheque Number'; rg.style.display = 'block'; }
+  else if (m === 'Transfer') { document.getElementById('ref-label').textContent = 'Transaction Reference'; rg.style.display = 'block'; }
+  else { rg.style.display = 'none'; }
+}
+
+function generateReceipt() {
+  const sal = document.getElementById('sel-salesman').value;
+  const cust = document.getElementById('sel-customer').value;
+  const amount = parseFloat(document.getElementById('inp-amount').value);
+  const ref = document.getElementById('inp-ref').value;
+
+  if (!sal) { showToast('Please select a salesman'); return; }
+  if (!cust) { showToast('Please select a customer'); return; }
+  if (!amount || amount <= 0) { showToast('Please enter a valid amount'); return; }
+  if (!selectedMethod) { showToast('Please select payment method'); return; }
+
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('en-AE');
+  const timeStr = now.toLocaleTimeString('en-AE', {hour:'2-digit', minute:'2-digit'});
+  const rcptNo = 'RCP-' + now.getFullYear().toString().slice(-2) +
+    String(now.getMonth()+1).padStart(2,'0') +
+    String(now.getDate()).padStart(2,'0') + '-' +
+    String(collections.length + 1).padStart(3,'0');
+
+  pendingReceipt = {
+    receiptNo: rcptNo, date: dateStr, time: timeStr,
+    customer: cust, salesman: appData[sal].name,
+    salesmanKey: sal, collectedBy: USER_LABELS[currentUser],
+    amount: amount, method: selectedMethod,
+    ref: ref, timestamp: now.toISOString(), synced: false
+  };
+  receiptSaved = false;
+
+  document.getElementById('r-no').textContent = rcptNo;
+  document.getElementById('r-amount').textContent = fmt(amount);
+  document.getElementById('r-customer').textContent = cust;
+  document.getElementById('r-salesman').textContent = appData[sal].name;
+  document.getElementById('r-method').textContent = selectedMethod;
+  document.getElementById('r-datetime').textContent = dateStr + ' ' + timeStr;
+  document.getElementById('r-collectedby').textContent = USER_LABELS[currentUser];
+  const refRow = document.getElementById('r-ref-row');
+  if (ref) { document.getElementById('r-ref').textContent = ref; refRow.style.display = 'flex'; }
+  else { refRow.style.display = 'none'; }
+
+  const btn = document.getElementById('btn-save');
+  btn.textContent = '⏳ Saving...';
+  btn.disabled = true;
+  document.getElementById('receipt-overlay').classList.add('show');
+  autoSaveToSheet();
+}
+
+function autoSaveToSheet() {
+  const params = new URLSearchParams({
+    receiptNo: pendingReceipt.receiptNo,
+    date: pendingReceipt.date,
+    time: pendingReceipt.time,
+    customer: pendingReceipt.customer,
+    salesman: pendingReceipt.salesman,
+    salesmanKey: pendingReceipt.salesmanKey || '',
+    amount: pendingReceipt.amount,
+    method: pendingReceipt.method,
+    ref: pendingReceipt.ref || '',
+    collectedBy: pendingReceipt.collectedBy || ''
+  });
+
+  const img = new Image();
+  img.onload = img.onerror = function() {
+    pendingReceipt.synced = true;
+    commitReceipt();
+    document.getElementById('btn-save').textContent = '✅ Saved to Sheet!';
+    showToast('✅ Saved to Google Sheets!');
+  };
+  img.src = SHEET_URL + '?' + params.toString();
+
+  setTimeout(() => {
+    if (!receiptSaved) {
+      pendingReceipt.synced = false;
+      commitReceipt();
+      const btn = document.getElementById('btn-save');
+      btn.textContent = '🔄 Retry';
+      btn.disabled = false;
+      btn.onclick = retrySave;
+    }
+  }, 10000);
+}
+
+function retrySave() {
+  const btn = document.getElementById('btn-save');
+  btn.textContent = '⏳ Retrying...';
+  btn.disabled = true;
+  const last = collections[collections.length - 1];
+  const params = new URLSearchParams({
+    receiptNo: last.receiptNo, date: last.date, time: last.time,
+    customer: last.customer, salesman: last.salesman,
+    amount: last.amount, method: last.method,
+    ref: last.ref || '', collectedBy: last.collectedBy || ''
+  });
+  const img = new Image();
+  img.onload = img.onerror = function() {
+    last.synced = true;
+    saveData();
+    btn.textContent = '✅ Saved!';
+    showToast('✅ Saved to Google Sheets!');
+  };
+  img.src = SHEET_URL + '?' + params.toString();
+}
+
+function commitReceipt() {
+  if (receiptSaved) return;
+  receiptSaved = true;
+  const custObj = appData[pendingReceipt.salesmanKey].customers.find(c => c.name === pendingReceipt.customer);
+  if (custObj) custObj.outstanding = Math.max(0, custObj.outstanding - pendingReceipt.amount);
+  collections.push(pendingReceipt);
+  saveData();
+  resetForm();
+}
+
+function shareWhatsApp() {
+  if (!pendingReceipt) return;
+  const r = pendingReceipt;
+  const msg = "*AL AZHA COMPUTER TRADING LLC*\n*Payment Receipt*\n\nReceipt No: " + r.receiptNo +
+    "\nDate: " + r.date + " " + r.time +
+    "\nCustomer: " + r.customer +
+    "\nSalesman: " + r.salesman +
+    "\nAmount: " + fmt(r.amount) +
+    "\nMethod: " + r.method +
+    (r.ref ? "\nRef: " + r.ref : "") +
+    "\n\n_Thank you for your payment_";
+  window.open("https://api.whatsapp.com/send?text=" + encodeURIComponent(msg), '_blank');
+}
+
+function closeReceipt() {
+  if (!receiptSaved && pendingReceipt) { pendingReceipt.synced = false; commitReceipt(); }
+  document.getElementById('receipt-overlay').classList.remove('show');
+  pendingReceipt = null;
+  document.getElementById('btn-save').onclick = null;
+}
+
+function resetForm() {
+  if (!isManager) return; // salesman keeps their salesman selected
+  document.getElementById('sel-salesman').value = '';
+  document.getElementById('sel-customer').innerHTML = '<option value="">-- Select Customer --</option>';
+  document.getElementById('sel-customer').disabled = true;
+  document.getElementById('customer-info').style.display = 'none';
+  document.getElementById('amount-display').style.display = 'none';
+  document.getElementById('ref-group').style.display = 'none';
+  document.querySelectorAll('.method-btn').forEach(b => b.classList.remove('selected'));
+  document.getElementById('inp-amount').value = '';
+  document.getElementById('inp-ref').value = '';
+  selectedMethod = '';
+}
+
+function renderHistory(filter) {
+  const list = document.getElementById('history-list');
+  let filtered = filter === 'ALL' ? collections : collections.filter(c => c.salesmanKey === filter);
+  filtered = [...filtered].reverse();
+  if (filtered.length === 0) {
+    list.innerHTML = '<div class="empty-state"><div class="icon">📋</div><div>No collections yet</div></div>';
+    return;
+  }
+  list.innerHTML = filtered.map(c => `
+    <div class="history-item ${c.synced ? '' : 'local'}">
+      <div class="history-top">
+        <span class="history-customer">${c.customer}</span>
+        <span class="history-amount">${fmt(c.amount)}</span>
+      </div>
+      <div class="history-bottom">
+        <span class="history-meta">${c.salesman} • ${c.method} • ${c.date}</span>
+        <span class="history-badge ${c.synced ? 'badge-synced' : 'badge-local'}">${c.synced ? '☁️ Synced' : '💾 Local'}</span>
+      </div>
+    </div>`).join('');
+}
+
+function filterHistory(filter, btn) {
+  document.querySelectorAll('.filter-chip').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderHistory(filter);
+}
+
+function resetAllData() {
+  localStorage.removeItem('alazha_data_v3');
+  localStorage.removeItem('alazha_coll_v3');
+  appData = JSON.parse(JSON.stringify(initialData));
+  collections = [];
+  renderDashboard();
+  showToast('✅ Data reset to original!');
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.remove('show');
+  void t.offsetWidth;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+loadData();
+</script>
+
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  });
+}
+</script>
+</body>
+</html>
