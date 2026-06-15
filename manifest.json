@@ -1,0 +1,31 @@
+{
+  "name": "Al Azha Collection",
+  "short_name": "AL AZHA",
+  "description": "Al Azha Computer Trading LLC - Payment Collection Tracker",
+  "start_url": "/Alazha-app/",
+  "scope": "/Alazha-app/",
+  "display": "standalone",
+  "background_color": "#1a3a5c",
+  "theme_color": "#1a3a5c",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon.png",
+      "sizes": "1024x1024",
+      "type": "image/png",
+      "purpose": "maskable any"
+    }
+  ]
+}
